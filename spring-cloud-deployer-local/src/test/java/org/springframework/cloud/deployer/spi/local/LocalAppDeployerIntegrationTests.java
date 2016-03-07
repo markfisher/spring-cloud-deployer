@@ -19,25 +19,25 @@ package org.springframework.cloud.deployer.spi.local;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.SpringApplicationConfiguration;
-import org.springframework.cloud.deployer.spi.process.ProcessDeployer;
-import org.springframework.cloud.deployer.spi.test.AbstractProcessDeployerTests;
+import org.springframework.cloud.deployer.spi.app.AppDeployer;
+import org.springframework.cloud.deployer.spi.test.AbstractAppDeployerTests;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Integration tests for LocalProcessDeployer.
+ * Integration tests for {@link LocalAppDeployer}.
  *
  * @author Eric Bottard
  */
-@SpringApplicationConfiguration(classes = LocalProcessDeployerIntegrationTests.Config.class)
-public class LocalProcessDeployerIntegrationTests extends AbstractProcessDeployerTests {
+@SpringApplicationConfiguration(classes = LocalAppDeployerIntegrationTests.Config.class)
+public class LocalAppDeployerIntegrationTests extends AbstractAppDeployerTests {
 
 	@Autowired
-	private ProcessDeployer processDeployer;
+	private AppDeployer appDeployer;
 
 	@Override
-	protected ProcessDeployer processDeployer() {
-		return processDeployer;
+	protected AppDeployer appDeployer() {
+		return appDeployer;
 	}
 
 	@Configuration
@@ -45,8 +45,8 @@ public class LocalProcessDeployerIntegrationTests extends AbstractProcessDeploye
 	public static class Config {
 
 		@Bean
-		public ProcessDeployer processDeployer() {
-			return new LocalProcessDeployer();
+		public AppDeployer appDeployer() {
+			return new LocalAppDeployer();
 		}
 	}
 

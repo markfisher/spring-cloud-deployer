@@ -18,10 +18,10 @@ package org.springframework.cloud.deployer.spi.test;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-import static org.springframework.cloud.deployer.spi.process.DeploymentState.deployed;
-import static org.springframework.cloud.deployer.spi.process.DeploymentState.deploying;
-import static org.springframework.cloud.deployer.spi.process.DeploymentState.failed;
-import static org.springframework.cloud.deployer.spi.process.DeploymentState.unknown;
+import static org.springframework.cloud.deployer.spi.app.DeploymentState.deployed;
+import static org.springframework.cloud.deployer.spi.app.DeploymentState.deploying;
+import static org.springframework.cloud.deployer.spi.app.DeploymentState.failed;
+import static org.springframework.cloud.deployer.spi.app.DeploymentState.unknown;
 import static org.springframework.cloud.deployer.spi.test.EventuallyMatcher.eventually;
 
 import java.io.File;
@@ -36,19 +36,19 @@ import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.springframework.cloud.deployer.spi.app.AppDeployer;
+import org.springframework.cloud.deployer.spi.app.AppStatus;
 import org.springframework.cloud.deployer.spi.core.AppDefinition;
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
-import org.springframework.cloud.deployer.spi.process.ProcessDeployer;
-import org.springframework.cloud.deployer.spi.process.ProcessStatus;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * Abstract base class for integration tests of
- * {@link org.springframework.cloud.deployer.spi.process.ProcessDeployer} implementations.
+ * {@link org.springframework.cloud.deployer.spi.app.AppDeployer} implementations.
  *
- * <p>Inheritors should setup an environment with a newly created {@link org.springframework.cloud.deployer.spi.process.ProcessDeployer}
+ * <p>Inheritors should setup an environment with a newly created {@link org.springframework.cloud.deployer.spi.app.AppDeployer}
  * that has no pre-deployed applications. Tests in this class are independent and leave the deployer in a clean state after they successfully
  * run.</p>
  *
@@ -58,16 +58,16 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Eric Bottard
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-public abstract class AbstractProcessDeployerTests {
+public abstract class AbstractAppDeployerTests {
 
-	protected abstract ProcessDeployer processDeployer();
+	protected abstract AppDeployer appDeployer();
 
 	@Test
 	public void testUnknownDeployment() {
 		String unknownId = randomName();
-		ProcessStatus status = processDeployer().status(unknownId);
+		AppStatus status = appDeployer().status(unknownId);
 
-		assertThat(status.getProcessDeploymentId(), is(unknownId));
+		assertThat(status.getDeploymentId(), is(unknownId));
 		assertThat("The map was not empty: " + status.getInstances(), status.getInstances().isEmpty(), is(true));
 		assertThat(status.getState(), is(unknown));
 	}
@@ -81,19 +81,19 @@ public abstract class AbstractProcessDeployerTests {
 		Resource resource = mavenResource("org.springframework.cloud.stream.module", "time-source","jar","exec","1.0.0.BUILD-SNAPSHOT");
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource);
 
-		String deploymentId = processDeployer().deploy(request);
+		String deploymentId = appDeployer().deploy(request);
 		Attempts timeout = deploymentTimeout();
 		assertThat(deploymentId, eventually(hasStatusThat(
-				Matchers.<ProcessStatus>hasProperty("state", is(deployed))), timeout.noAttempts, timeout.pause));
+				Matchers.<AppStatus>hasProperty("state", is(deployed))), timeout.noAttempts, timeout.pause));
 
 		timeout = undeploymentTimeout();
-		processDeployer().undeploy(deploymentId);
+		appDeployer().undeploy(deploymentId);
 		assertThat(deploymentId, eventually(hasStatusThat(
-				Matchers.<ProcessStatus>hasProperty("state", is(unknown))), timeout.noAttempts, timeout.pause));
+				Matchers.<AppStatus>hasProperty("state", is(unknown))), timeout.noAttempts, timeout.pause));
 	}
 
 	/**
-	 * A process deployer should be able to re-deploy an application after it has been un-deployed.
+	 * An app deployer should be able to re-deploy an application after it has been un-deployed.
 	 * This test makes sure the deployer does not leave things lying around for example.
 	 */
 	@Test
@@ -102,32 +102,32 @@ public abstract class AbstractProcessDeployerTests {
 		Resource resource = mavenResource("org.springframework.cloud.stream.module", "time-source","jar","exec","1.0.0.BUILD-SNAPSHOT");
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource);
 
-		String deploymentId = processDeployer().deploy(request);
+		String deploymentId = appDeployer().deploy(request);
 		Attempts timeout = deploymentTimeout();
 		assertThat(deploymentId, eventually(hasStatusThat(
-				Matchers.<ProcessStatus>hasProperty("state", is(deployed))), timeout.noAttempts, timeout.pause));
+				Matchers.<AppStatus>hasProperty("state", is(deployed))), timeout.noAttempts, timeout.pause));
 
 		timeout = undeploymentTimeout();
-		processDeployer().undeploy(deploymentId);
+		appDeployer().undeploy(deploymentId);
 		assertThat(deploymentId, eventually(hasStatusThat(
-				Matchers.<ProcessStatus>hasProperty("state", is(unknown))), timeout.noAttempts, timeout.pause));
+				Matchers.<AppStatus>hasProperty("state", is(unknown))), timeout.noAttempts, timeout.pause));
 
 		// Attempt re-deploy of SAME request
-		deploymentId = processDeployer().deploy(request);
+		deploymentId = appDeployer().deploy(request);
 		timeout = deploymentTimeout();
 		assertThat(deploymentId, eventually(hasStatusThat(
-				Matchers.<ProcessStatus>hasProperty("state", is(deployed))), timeout.noAttempts, timeout.pause));
+				Matchers.<AppStatus>hasProperty("state", is(deployed))), timeout.noAttempts, timeout.pause));
 
 		timeout = undeploymentTimeout();
-		processDeployer().undeploy(deploymentId);
+		appDeployer().undeploy(deploymentId);
 		assertThat(deploymentId, eventually(hasStatusThat(
-				Matchers.<ProcessStatus>hasProperty("state", is(unknown))), timeout.noAttempts, timeout.pause));
+				Matchers.<AppStatus>hasProperty("state", is(unknown))), timeout.noAttempts, timeout.pause));
 
 	}
 
 	/**
-	 * Tests that a module which takes a long time to deploy is correctly reported as deploying.
-	 * Test that such a module can be killed (undeployed).
+	 * Tests that an app which takes a long time to deploy is correctly reported as deploying.
+	 * Test that such an app can be undeployed.
 	 */
 	@Test
 	public void testDeployingStateCalculationAndCancel() {
@@ -137,15 +137,15 @@ public abstract class AbstractProcessDeployerTests {
 		Resource resource = mavenResource("org.springframework.cloud.stream.module", "integration-test-processor","jar","exec","1.0.0.BUILD-SNAPSHOT");
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, properties);
 
-		String deploymentId = processDeployer().deploy(request);
+		String deploymentId = appDeployer().deploy(request);
 		Attempts timeout = deploymentTimeout();
 		assertThat(deploymentId, eventually(hasStatusThat(
-				Matchers.<ProcessStatus>hasProperty("state", is(deploying))), timeout.noAttempts, timeout.pause));
+				Matchers.<AppStatus>hasProperty("state", is(deploying))), timeout.noAttempts, timeout.pause));
 
 		timeout = undeploymentTimeout();
-		processDeployer().undeploy(deploymentId);
+		appDeployer().undeploy(deploymentId);
 		assertThat(deploymentId, eventually(hasStatusThat(
-				Matchers.<ProcessStatus>hasProperty("state", is(unknown))), timeout.noAttempts, timeout.pause));
+				Matchers.<AppStatus>hasProperty("state", is(unknown))), timeout.noAttempts, timeout.pause));
 
 	}
 
@@ -157,15 +157,15 @@ public abstract class AbstractProcessDeployerTests {
 		Resource resource = mavenResource("org.springframework.cloud.stream.module", "integration-test-processor","jar","exec","1.0.0.BUILD-SNAPSHOT");
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, properties);
 
-		String deploymentId = processDeployer().deploy(request);
+		String deploymentId = appDeployer().deploy(request);
 		Attempts timeout = deploymentTimeout();
 		assertThat(deploymentId, eventually(hasStatusThat(
-				Matchers.<ProcessStatus>hasProperty("state", is(failed))), timeout.noAttempts, timeout.pause));
+				Matchers.<AppStatus>hasProperty("state", is(failed))), timeout.noAttempts, timeout.pause));
 
 		timeout = undeploymentTimeout();
-		processDeployer().undeploy(deploymentId);
+		appDeployer().undeploy(deploymentId);
 		assertThat(deploymentId, eventually(hasStatusThat(
-				Matchers.<ProcessStatus>hasProperty("state", is(unknown))), timeout.noAttempts, timeout.pause));
+				Matchers.<AppStatus>hasProperty("state", is(unknown))), timeout.noAttempts, timeout.pause));
 	}
 
 	protected String randomName() {
@@ -220,18 +220,18 @@ public abstract class AbstractProcessDeployerTests {
 	}
 
 	/**
-	 * A Hamcrest Matcher that queries the deployment status for some process id.
+	 * A Hamcrest Matcher that queries the deployment status for some app id.
 	 *
 	 * @author Eric Bottard
 	 */
-	protected Matcher<String> hasStatusThat(final Matcher<ProcessStatus> statusMatcher) {
+	protected Matcher<String> hasStatusThat(final Matcher<AppStatus> statusMatcher) {
 		return new BaseMatcher<String>() {
 
-			private ProcessStatus status;
+			private AppStatus status;
 
 			@Override
 			public boolean matches(Object item) {
-				status = processDeployer().status((String) item);
+				status = appDeployer().status((String) item);
 				return statusMatcher.matches(status);
 			}
 

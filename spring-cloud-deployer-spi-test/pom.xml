@@ -3,17 +3,20 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<artifactId>spring-cloud-deployer-local</artifactId>
+	<artifactId>spring-cloud-deployer-spi-test</artifactId>
 	<packaging>jar</packaging>
-
-	<name>spring-cloud-deployer-local</name>
-	<description>Spring Cloud Local Deployer</description>
+	<name>spring-cloud-deployer-spi-test</name>
+	<description>Base Tests for Spring Cloud Deployer SPI Implementations</description>
 
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-deployer-parent</artifactId>
 		<version>1.0.0.BUILD-SNAPSHOT</version>
 	</parent>
+
+	<properties>
+		<hamcrest.version>1.3</hamcrest.version>
+	</properties>
 
 	<dependencies>
 		<dependency>
@@ -22,23 +25,17 @@
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-deployer-resource-maven</artifactId>
-			<version>${project.version}</version>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-test</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-web</artifactId>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-loader</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-deployer-spi-test</artifactId>
-			<version>${project.version}</version>
-			<scope>test</scope>
+			<groupId>org.hamcrest</groupId>
+			<artifactId>hamcrest-all</artifactId>
+			<version>${hamcrest.version}</version>
 		</dependency>
 	</dependencies>
 

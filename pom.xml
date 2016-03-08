@@ -28,6 +28,7 @@
 		<module>spring-cloud-deployer-spi</module>
 		<module>spring-cloud-deployer-resource-maven</module>
 		<module>spring-cloud-deployer-local</module>
+		<module>spring-cloud-deployer-spi-test</module>
 		<module>spring-cloud-deployer-sample-stream</module>
 		<module>spring-cloud-deployer-sample-task</module>
 	</modules>

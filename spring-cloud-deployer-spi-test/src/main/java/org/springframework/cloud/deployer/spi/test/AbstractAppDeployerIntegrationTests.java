@@ -46,19 +46,25 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * Abstract base class for integration tests of
- * {@link org.springframework.cloud.deployer.spi.app.AppDeployer} implementations.
- *
- * <p>Inheritors should setup an environment with a newly created {@link org.springframework.cloud.deployer.spi.app.AppDeployer}
- * that has no pre-deployed applications. Tests in this class are independent and leave the deployer in a clean state after they successfully
- * run.</p>
- *
- * <p>As deploying an application is often quite time consuming, some tests often test various aspects of deployment in a
- * row, to avoid re-deploying apps over and over again.</p>
+ * {@link org.springframework.cloud.deployer.spi.app.AppDeployer}
+ * implementations.
+ * <p>
+ * Inheritors should setup an environment with a newly created
+ * {@link org.springframework.cloud.deployer.spi.app.AppDeployer} that has no
+ * pre-deployed applications. Tests in this class are independent and leave the
+ * deployer in a clean state after they successfully run.
+ * </p>
+ * <p>
+ * As deploying an application is often quite time consuming, some tests assert
+ * various aspects of deployment in a row, to avoid re-deploying apps over and
+ * over again.
+ * </p>
  *
  * @author Eric Bottard
+ * @author Mark Fisher
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-public abstract class AbstractAppDeployerTests {
+public abstract class AbstractAppDeployerIntegrationTests {
 
 	protected abstract AppDeployer appDeployer();
 
@@ -78,18 +84,18 @@ public abstract class AbstractAppDeployerTests {
 	@Test
 	public void testSimpleDeployment() {
 		AppDefinition definition = new AppDefinition(randomName(), null);
-		Resource resource = mavenResource("org.springframework.cloud.stream.module", "time-source","jar","exec","1.0.0.BUILD-SNAPSHOT");
+		Resource resource = mavenResource("org.springframework.cloud.stream.module", "time-source", "jar", "exec", "1.0.0.BUILD-SNAPSHOT");
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource);
 
 		String deploymentId = appDeployer().deploy(request);
-		Attempts timeout = deploymentTimeout();
+		Timeout timeout = deploymentTimeout();
 		assertThat(deploymentId, eventually(hasStatusThat(
-				Matchers.<AppStatus>hasProperty("state", is(deployed))), timeout.noAttempts, timeout.pause));
+				Matchers.<AppStatus>hasProperty("state", is(deployed))), timeout.maxAttempts, timeout.pause));
 
 		timeout = undeploymentTimeout();
 		appDeployer().undeploy(deploymentId);
 		assertThat(deploymentId, eventually(hasStatusThat(
-				Matchers.<AppStatus>hasProperty("state", is(unknown))), timeout.noAttempts, timeout.pause));
+				Matchers.<AppStatus>hasProperty("state", is(unknown))), timeout.maxAttempts, timeout.pause));
 	}
 
 	/**
@@ -103,25 +109,25 @@ public abstract class AbstractAppDeployerTests {
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource);
 
 		String deploymentId = appDeployer().deploy(request);
-		Attempts timeout = deploymentTimeout();
+		Timeout timeout = deploymentTimeout();
 		assertThat(deploymentId, eventually(hasStatusThat(
-				Matchers.<AppStatus>hasProperty("state", is(deployed))), timeout.noAttempts, timeout.pause));
+				Matchers.<AppStatus>hasProperty("state", is(deployed))), timeout.maxAttempts, timeout.pause));
 
 		timeout = undeploymentTimeout();
 		appDeployer().undeploy(deploymentId);
 		assertThat(deploymentId, eventually(hasStatusThat(
-				Matchers.<AppStatus>hasProperty("state", is(unknown))), timeout.noAttempts, timeout.pause));
+				Matchers.<AppStatus>hasProperty("state", is(unknown))), timeout.maxAttempts, timeout.pause));
 
 		// Attempt re-deploy of SAME request
 		deploymentId = appDeployer().deploy(request);
 		timeout = deploymentTimeout();
 		assertThat(deploymentId, eventually(hasStatusThat(
-				Matchers.<AppStatus>hasProperty("state", is(deployed))), timeout.noAttempts, timeout.pause));
+				Matchers.<AppStatus>hasProperty("state", is(deployed))), timeout.maxAttempts, timeout.pause));
 
 		timeout = undeploymentTimeout();
 		appDeployer().undeploy(deploymentId);
 		assertThat(deploymentId, eventually(hasStatusThat(
-				Matchers.<AppStatus>hasProperty("state", is(unknown))), timeout.noAttempts, timeout.pause));
+				Matchers.<AppStatus>hasProperty("state", is(unknown))), timeout.maxAttempts, timeout.pause));
 
 	}
 
@@ -138,14 +144,14 @@ public abstract class AbstractAppDeployerTests {
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, properties);
 
 		String deploymentId = appDeployer().deploy(request);
-		Attempts timeout = deploymentTimeout();
+		Timeout timeout = deploymentTimeout();
 		assertThat(deploymentId, eventually(hasStatusThat(
-				Matchers.<AppStatus>hasProperty("state", is(deploying))), timeout.noAttempts, timeout.pause));
+				Matchers.<AppStatus>hasProperty("state", is(deploying))), timeout.maxAttempts, timeout.pause));
 
 		timeout = undeploymentTimeout();
 		appDeployer().undeploy(deploymentId);
 		assertThat(deploymentId, eventually(hasStatusThat(
-				Matchers.<AppStatus>hasProperty("state", is(unknown))), timeout.noAttempts, timeout.pause));
+				Matchers.<AppStatus>hasProperty("state", is(unknown))), timeout.maxAttempts, timeout.pause));
 
 	}
 
@@ -158,14 +164,14 @@ public abstract class AbstractAppDeployerTests {
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, properties);
 
 		String deploymentId = appDeployer().deploy(request);
-		Attempts timeout = deploymentTimeout();
+		Timeout timeout = deploymentTimeout();
 		assertThat(deploymentId, eventually(hasStatusThat(
-				Matchers.<AppStatus>hasProperty("state", is(failed))), timeout.noAttempts, timeout.pause));
+				Matchers.<AppStatus>hasProperty("state", is(failed))), timeout.maxAttempts, timeout.pause));
 
 		timeout = undeploymentTimeout();
 		appDeployer().undeploy(deploymentId);
 		assertThat(deploymentId, eventually(hasStatusThat(
-				Matchers.<AppStatus>hasProperty("state", is(unknown))), timeout.noAttempts, timeout.pause));
+				Matchers.<AppStatus>hasProperty("state", is(unknown))), timeout.maxAttempts, timeout.pause));
 	}
 
 	protected String randomName() {
@@ -173,19 +179,19 @@ public abstract class AbstractAppDeployerTests {
 	}
 
 	/**
-	 * Return the timeout to use for repeatedly querying a module while it is being deployed.
+	 * Return the timeout to use for repeatedly querying app status while it is being deployed.
 	 * Default value is one minute, being queried every 5 seconds.
 	 */
-	protected Attempts deploymentTimeout() {
-		return new Attempts(12, 5000);
+	protected Timeout deploymentTimeout() {
+		return new Timeout(12, 5000);
 	}
 
 	/**
-	 * Return the timeout to use for repeatedly querying a module while it is being un-deployed.
+	 * Return the timeout to use for repeatedly querying app status while it is being un-deployed.
 	 * Default value is one minute, being queried every 5 seconds.
 	 */
-	protected Attempts undeploymentTimeout() {
-		return new Attempts(20, 5000);
+	protected Timeout undeploymentTimeout() {
+		return new Timeout(20, 5000);
 	}
 
 	private Resource mavenResource(String groupId, String artifactId, String ext, String classifier, String version) {
@@ -207,14 +213,14 @@ public abstract class AbstractAppDeployerTests {
 	 *
 	 * @author Eric Bottard
 	 */
-	protected static class Attempts {
+	protected static class Timeout {
 
-		public final int noAttempts;
+		public final int maxAttempts;
 
 		public final int pause;
 
-		public Attempts(int noAttempts, int pause) {
-			this.noAttempts = noAttempts;
+		public Timeout(int maxAttempts, int pause) {
+			this.maxAttempts = maxAttempts;
 			this.pause = pause;
 		}
 	}

@@ -20,9 +20,9 @@ import org.hamcrest.Description;
 import org.hamcrest.DiagnosingMatcher;
 import org.hamcrest.Matcher;
 
-
 /**
- * A matcher that will evaluate another matcher repeatedly until it matches, or fail after some number of attempts.
+ * A matcher that will evaluate another matcher repeatedly until it matches, or
+ * fail after some number of max attempts.
  *
  * @param <U> the type the wrapped matcher operates on
  *
@@ -32,7 +32,7 @@ public class EventuallyMatcher<U> extends DiagnosingMatcher<U> {
 
 	private final Matcher<U> delegate;
 
-	private int noAttempts;
+	private int maxAttempts;
 
 	private int pause;
 
@@ -40,22 +40,22 @@ public class EventuallyMatcher<U> extends DiagnosingMatcher<U> {
 		this(delegate, 20, 100);
 	}
 
-	public EventuallyMatcher(Matcher<U> delegate, int noAttempts, int pause) {
+	public EventuallyMatcher(Matcher<U> delegate, int maxAttempts, int pause) {
 		this.delegate = delegate;
-		this.noAttempts = noAttempts;
+		this.maxAttempts = maxAttempts;
 		this.pause = pause;
 	}
 
 	@Override
 	public void describeTo(Description description) {
-		description.appendDescriptionOf(delegate).appendText(String.format(", trying at most %d times", noAttempts));
+		description.appendDescriptionOf(delegate).appendText(String.format(", trying at most %d times", maxAttempts));
 	}
 
 	@Override
 	protected boolean matches(Object item, Description mismatchDescription) {
-		mismatchDescription.appendText(String.format("failed after %d*%d=%dms:%n", noAttempts, pause, noAttempts
-				* pause));
-		for (int i = 0; i < noAttempts; i++) {
+		mismatchDescription.appendText(
+				String.format("failed after %d*%d=%dms:%n", maxAttempts, pause, maxAttempts * pause));
+		for (int i = 0; i < maxAttempts; i++) {
 			boolean result = delegate.matches(item);
 			if (result) {
 				return true;

@@ -20,7 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.cloud.deployer.spi.app.AppDeployer;
-import org.springframework.cloud.deployer.spi.test.AbstractAppDeployerTests;
+import org.springframework.cloud.deployer.spi.test.AbstractAppDeployerIntegrationTests;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -28,9 +28,10 @@ import org.springframework.context.annotation.Configuration;
  * Integration tests for {@link LocalAppDeployer}.
  *
  * @author Eric Bottard
+ * @author Mark Fisher
  */
 @SpringApplicationConfiguration(classes = LocalAppDeployerIntegrationTests.Config.class)
-public class LocalAppDeployerIntegrationTests extends AbstractAppDeployerTests {
+public class LocalAppDeployerIntegrationTests extends AbstractAppDeployerIntegrationTests {
 
 	@Autowired
 	private AppDeployer appDeployer;

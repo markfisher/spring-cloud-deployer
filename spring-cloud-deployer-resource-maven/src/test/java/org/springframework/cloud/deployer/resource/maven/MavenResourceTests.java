@@ -28,7 +28,7 @@ public class MavenResourceTests {
 
 	@Test
 	public void testMavenResourceFilename() {
-		MavenResource resource = new MavenResource.Builder()
+		MavenResource resource = new MavenResource.Builder(new MavenProperties())
 				.setArtifactId("timestamp-task")
 				.setGroupId("org.springframework.cloud.task.module")
 				.setVersion("1.0.0.BUILD-SNAPSHOT")

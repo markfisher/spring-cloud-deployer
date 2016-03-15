@@ -19,6 +19,7 @@ package sample;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.cloud.deployer.resource.maven.MavenProperties;
 import org.springframework.cloud.deployer.resource.maven.MavenResource;
 import org.springframework.cloud.deployer.spi.core.AppDefinition;
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
@@ -43,7 +44,7 @@ public class TimeStamp {
 	}
 
 	private static AppDeploymentRequest createAppDeploymentRequest(String app) {
-		MavenResource resource = new MavenResource.Builder()
+		MavenResource resource = new MavenResource.Builder(new MavenProperties())
 				.setArtifactId(app)
 				.setGroupId("org.springframework.cloud.task.module")
 				.setVersion("1.0.0.BUILD-SNAPSHOT")

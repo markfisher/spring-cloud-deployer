@@ -19,12 +19,15 @@ package org.springframework.cloud.deployer.resource.maven;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.springframework.core.io.AbstractResource;
 import org.springframework.core.io.Resource;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -56,9 +59,6 @@ import org.springframework.util.StringUtils;
  * @author Venil Noronha
  */
 public class MavenResource extends AbstractResource {
-
-	private static final File LOCAL_REPO = new File(System.getProperty("user.home")
-			+ File.separator + ".m2" + File.separator + "repository");
 
 	/**
 	 * The default extension for the artifact.
@@ -96,7 +96,7 @@ public class MavenResource extends AbstractResource {
 	 */
 	private final String version;
 
-	private final MavenArtifactResolver resolver = new MavenArtifactResolver(LOCAL_REPO, null);
+	private final MavenArtifactResolver resolver;
 
 	/**
 	 * Construct a {@code MavenResource} object.
@@ -107,16 +107,28 @@ public class MavenResource extends AbstractResource {
 	 * @param classifier artifact classifier - can be null
 	 * @param version artifact version
 	 */
-	private MavenResource(String groupId, String artifactId, String extension, String classifier, String version) {
-		Assert.hasText(groupId, "'groupId' cannot be blank");
-		Assert.hasText(artifactId, "'artifactId' cannot be blank");
-		Assert.hasText(extension, "'extension' cannot be blank");
-		Assert.hasText(version, "'version' cannot be blank");
+	private MavenResource(String groupId, String artifactId, String extension, String classifier,
+			String version, MavenProperties properties) {
+		Assert.hasText(groupId, "groupId must not be blank");
+		Assert.hasText(artifactId, "artifactId must not be blank");
+		Assert.hasText(extension, "extension must not be blank");
+		Assert.hasText(version, "version must not be blank");
+		Assert.notNull(properties, "MavenProperties must not be null");
 		this.groupId = groupId;
 		this.artifactId = artifactId;
 		this.extension = extension;
 		this.classifier = classifier == null ? EMPTY_CLASSIFIER : classifier;
 		this.version = version;
+		Map<String, String> remoteRepositories = new HashMap<>();
+		if (!ObjectUtils.isEmpty(properties.getRemoteRepositories())) {
+			int i = 1;
+			for (String remoteRepository : properties.getRemoteRepositories()) {
+				remoteRepositories.put(String.format("repository%d", i++), remoteRepository);
+			}
+		}
+		this.resolver = new MavenArtifactResolver(new File(properties.getLocalRepository()),
+				remoteRepositories, properties.getProxy());
+		this.resolver.setOffline(properties.isOffline());
 	}
 
 	/**
@@ -223,7 +235,7 @@ public class MavenResource extends AbstractResource {
 	 * conforming to the <a href="http://www.eclipse.org/aether">Aether</a> convention.
 	 * @return the instance
 	 */
-	public static MavenResource parse(String coordinates) {
+	public static MavenResource parse(String coordinates, MavenProperties properties) {
 		Assert.hasText(coordinates);
 		Pattern p = Pattern.compile("([^: ]+):([^: ]+)(:([^: ]*)(:([^: ]+))?)?:([^: ]+)");
 		Matcher m = p.matcher(coordinates);
@@ -234,7 +246,7 @@ public class MavenResource extends AbstractResource {
 		String extension = StringUtils.hasLength(m.group(4)) ? m.group(4) : DEFAULT_EXTENSION;
 		String classifier = StringUtils.hasLength(m.group(6)) ? m.group(6) : EMPTY_CLASSIFIER;
 		String version = m.group(7);
-		return new MavenResource(groupId, artifactId, extension, classifier, version);
+		return new MavenResource(groupId, artifactId, extension, classifier, version, properties);
 	}
 
 	public static class Builder {
@@ -248,6 +260,12 @@ public class MavenResource extends AbstractResource {
 		private String classifier = EMPTY_CLASSIFIER;
 
 		private String version;
+
+		private final MavenProperties properties;
+
+		public Builder(MavenProperties properties) {
+			this.properties = properties;
+		}
 
 		public Builder setGroupId(String groupId) {
 			this.groupId = groupId;
@@ -275,7 +293,7 @@ public class MavenResource extends AbstractResource {
 		}
 
 		public MavenResource build() {
-			return new MavenResource(groupId, artifactId, extension, classifier, version);
+			return new MavenResource(groupId, artifactId, extension, classifier, version, properties);
 		}
 	}
 }

@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.cloud.deployer.resource.maven.MavenProperties;
 import org.springframework.cloud.deployer.resource.maven.MavenResource;
 import org.springframework.cloud.deployer.spi.app.AppDeployer;
 import org.springframework.cloud.deployer.spi.core.AppDefinition;
@@ -47,7 +48,7 @@ public class TickTock {
 	}
 
 	private static AppDeploymentRequest createAppDeploymentRequest(String app, String stream) {
-		MavenResource resource = new MavenResource.Builder()
+		MavenResource resource = new MavenResource.Builder(new MavenProperties())
 				.setArtifactId(app)
 				.setGroupId("org.springframework.cloud.stream.module")
 				.setVersion("1.0.0.BUILD-SNAPSHOT")

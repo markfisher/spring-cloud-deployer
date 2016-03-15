@@ -19,15 +19,12 @@ package org.springframework.cloud.deployer.resource.maven;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.springframework.core.io.AbstractResource;
 import org.springframework.core.io.Resource;
 import org.springframework.util.Assert;
-import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -106,6 +103,7 @@ public class MavenResource extends AbstractResource {
 	 * @param extension the file extension
 	 * @param classifier artifact classifier - can be null
 	 * @param version artifact version
+	 * @param properties Maven configuration properties
 	 */
 	private MavenResource(String groupId, String artifactId, String extension, String classifier,
 			String version, MavenProperties properties) {
@@ -119,16 +117,7 @@ public class MavenResource extends AbstractResource {
 		this.extension = extension;
 		this.classifier = classifier == null ? EMPTY_CLASSIFIER : classifier;
 		this.version = version;
-		Map<String, String> remoteRepositories = new HashMap<>();
-		if (!ObjectUtils.isEmpty(properties.getRemoteRepositories())) {
-			int i = 1;
-			for (String remoteRepository : properties.getRemoteRepositories()) {
-				remoteRepositories.put(String.format("repository%d", i++), remoteRepository);
-			}
-		}
-		this.resolver = new MavenArtifactResolver(new File(properties.getLocalRepository()),
-				remoteRepositories, properties.getProxy());
-		this.resolver.setOffline(properties.isOffline());
+		this.resolver = new MavenArtifactResolver(properties);
 	}
 
 	/**

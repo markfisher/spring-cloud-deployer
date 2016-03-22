@@ -1,0 +1,71 @@
+/*
+ * Copyright 2016 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.springframework.cloud.deployer.resource.maven;
+
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
+import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
+
+/**
+ * A {@link ResourceLoader} that loads {@link MavenResource}s from locations of the format
+ * {@literal maven://<coordinates>} where the value for "coordinates" conforms to the rules
+ * described on {@link MavenResource#parse(String)} 
+ *
+ * @author Mark Fisher
+ */
+public class MavenResourceLoader implements ResourceLoader {
+
+	private static final String PREFIX = "maven://";
+
+	private final MavenProperties properties;
+
+	private final ClassLoader classLoader = ClassUtils.getDefaultClassLoader();
+
+	/**
+	 * Create a {@link MavenResourceLoader} that uses the provided {@link MavenProperties}.
+	 *
+	 * @param properties the {@link MavenProperties} to use when instantiating {@link MavenResource}s
+	 */
+	public MavenResourceLoader(MavenProperties properties) {
+		Assert.notNull(properties, "MavenProperties must not be null");
+		this.properties = properties;
+	}
+
+	/**
+	 * Returns a {@link MavenResource} for the provided location.
+	 *
+	 * @param location the location in the format of {@literal maven://<coordinates>} where the
+	 * value for "coordinates" conforms to the rules described on {@link MavenResource#parse(String)}
+	 * @return the {@link MavenResource}
+	 */
+	@Override
+	public Resource getResource(String location) {
+		Assert.isTrue(location != null && location.startsWith(PREFIX), "'maven://' prefix required");
+		String coordinates = location.substring(PREFIX.length());
+		return MavenResource.parse(coordinates, this.properties);
+	}
+
+	/**
+	 * Returns the {@link ClassLoader} for this ResourceLoader.
+	 */
+	@Override
+	public ClassLoader getClassLoader() {
+		return this.classLoader;
+	}
+
+}

@@ -230,7 +230,7 @@ public class MavenResource extends AbstractResource {
 	/**
 	 * Create a {@link MavenResource} for the provided coordinates and default properties.
 	 *
-	 * @param coordinates coordinates encoded as <groupId>:<artifactId>[:<extension>[:<classifier>]]:<version>,
+	 * @param coordinates coordinates encoded as &lt;groupId&gt;:&lt;artifactId&gt;[:&lt;extension&gt;[:&lt;classifier&gt;]]:&lt;version&gt;,
 	 * conforming to the <a href="http://www.eclipse.org/aether">Aether</a> convention.
 	 * @return the {@link MavenResource}
 	 */
@@ -241,7 +241,7 @@ public class MavenResource extends AbstractResource {
 	/**
 	 * Create a {@link MavenResource} for the provided coordinates and properties.
 	 *
-	 * @param coordinates coordinates encoded as <groupId>:<artifactId>[:<extension>[:<classifier>]]:<version>,
+	 * @param coordinates coordinates encoded as &lt;groupId&gt;:&lt;artifactId&gt;[:&lt;extension&gt;[:&lt;classifier&gt;]]:&lt;version&gt;,
 	 * conforming to the <a href="http://www.eclipse.org/aether">Aether</a> convention.
 	 * @param properties the properties for the repositories, proxies, and authentication
 	 * @return the {@link MavenResource}

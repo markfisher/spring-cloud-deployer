@@ -30,7 +30,7 @@ import org.springframework.util.ClassUtils;
  */
 public class MavenResourceLoader implements ResourceLoader {
 
-	private static final String PREFIX = "maven://";
+	private static final String URI_SCHEME = "maven";
 
 	private final MavenProperties properties;
 
@@ -49,14 +49,16 @@ public class MavenResourceLoader implements ResourceLoader {
 	/**
 	 * Returns a {@link MavenResource} for the provided location.
 	 *
-	 * @param location the location in the format of {@literal maven://<coordinates>} where the
-	 * value for "coordinates" conforms to the rules described on {@link MavenResource#parse(String)}
+	 * @param location the coordinates conforming to the rules described on
+	 * {@link MavenResource#parse(String)}. May optionally be preceded by {@value #URI_SCHEME}
+	 * followed by a colon and zero or more forward slashes, e.g.
+	 * {@literal maven://group:artifact:version}
 	 * @return the {@link MavenResource}
 	 */
 	@Override
 	public Resource getResource(String location) {
-		Assert.isTrue(location != null && location.startsWith(PREFIX), "'maven://' prefix required");
-		String coordinates = location.substring(PREFIX.length());
+		Assert.hasText(location, "location is required");
+		String coordinates = location.replaceFirst(URI_SCHEME + ":\\/*", "");
 		return MavenResource.parse(coordinates, this.properties);
 	}
 

@@ -32,13 +32,26 @@ import org.junit.Test;
  */
 public class MavenResourceTests {
 
+	private static final String DEFAULT_ARTIFACT_ID = "timestamp-task";
+
+	private static final String DEFAULT_GROUP_ID = "org.springframework.cloud.task.app";
+
+	private static final String DEFAULT_VERSION = "1.0.0.BUILD-SNAPSHOT";
+
+	private MavenResource snapshotResource(String artifactId) {
+		MavenProperties properties = new MavenProperties();
+		properties.setRemoteRepositories(new String[] {"https://repo.spring.io/libs-snapshot"});
+		MavenResource resource = new MavenResource.Builder(properties)
+				.artifactId(artifactId)
+				.groupId(DEFAULT_GROUP_ID)
+				.version(DEFAULT_VERSION)
+				.build();
+		return resource;
+	}
+
 	@Test
 	public void mavenResourceFilename() {
-		MavenResource resource = new MavenResource.Builder()
-				.artifactId("timestamp-task")
-				.groupId("org.springframework.cloud.task.app")
-				.version("1.0.0.BUILD-SNAPSHOT")
-				.build();
+		MavenResource resource = snapshotResource(DEFAULT_ARTIFACT_ID);
 		assertNotNull("getFilename() returned null", resource.getFilename());
 		assertEquals("getFilename() doesn't match the expected filename",
 				"timestamp-task-1.0.0.BUILD-SNAPSHOT.jar", resource.getFilename());
@@ -46,32 +59,24 @@ public class MavenResourceTests {
 
 	@Test
 	public void resourceExists() {
-		MavenResource resource = new MavenResource.Builder()
-				.artifactId("timestamp-task")
-				.groupId("org.springframework.cloud.task.app")
-				.version("1.0.0.BUILD-SNAPSHOT")
-				.build();
-		assertEquals(resource.exists(), true);
+		MavenResource resource = snapshotResource(DEFAULT_ARTIFACT_ID);
+		assertEquals(true, resource.exists());
 	}
 
 	@Test
 	public void resourceDoesNotExist() {
-		MavenResource resource = new MavenResource.Builder()
-				.artifactId("doesnotexist")
-				.groupId("org.springframework.cloud.task.app")
-				.version("1.0.0.BUILD-SNAPSHOT")
-				.build();
-		assertEquals(resource.exists(), false);
+		MavenResource resource = snapshotResource("doesnotexist");
+		assertEquals(false, resource.exists());
 	}
 
 	@Test
 	public void coordinatesParsed() {
-		MavenResource resource = MavenResource.parse("org.springframework.cloud.task.app:timestamp-task:jar:exec:1.0.0.BUILD-SNAPSHOT");
+		MavenResource resource = MavenResource.parse("example:foo:jar:exec:1.0.1");
 		assertEquals("getFilename() doesn't match the expected filename",
-				"timestamp-task-1.0.0.BUILD-SNAPSHOT-exec.jar", resource.getFilename());
-		resource = MavenResource.parse("org.springframework.cloud.task.app:timestamp-task:jar:1.0.0.BUILD-SNAPSHOT");
+				"foo-1.0.1-exec.jar", resource.getFilename());
+		resource = MavenResource.parse("example:bar:1.0.2");
 		assertEquals("getFilename() doesn't match the expected filename",
-				"timestamp-task-1.0.0.BUILD-SNAPSHOT.jar", resource.getFilename());
+				"bar-1.0.2.jar", resource.getFilename());
 	}
 
 	@Test
